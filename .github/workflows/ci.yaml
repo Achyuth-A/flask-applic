@@ -1,0 +1,43 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout App Repo
+        uses: actions/checkout@v3
+
+      - name: Set Image Tag
+        run: echo "IMAGE_TAG=${GITHUB_SHA}" >> $GITHUB_ENV
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker Image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/flask-app:${IMAGE_TAG} .
+
+      - name: Push Docker Image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/flask-app:${IMAGE_TAG}
+
+      - name: Clone GitOps Repo
+        run: git clone https://x-access-token:${{ secrets.GITOPS_REPO_PAT }}@github.com/yourgithubusername/flask-gitops.git
+
+      - name: Update Image Tag
+        run: |
+          cd flask-gitops/flask
+          sed -i "s|image:.*|image: ${{ secrets.DOCKER_USERNAME }}/flask-app:${IMAGE_TAG}|g" deployment.yaml
+
+      - name: Commit & Push
+        run: |
+          cd flask-gitops
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Update image to ${IMAGE_TAG}"
+          git push
