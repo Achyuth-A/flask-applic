@@ -35,7 +35,7 @@ jobs:
 
       - name: Commit & Push
         run: |
-          cd flask-gitops
+          cd gitops-pract
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add .
