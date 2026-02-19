@@ -26,11 +26,11 @@ jobs:
         run: docker push ${{ secrets.DOCKER_USERNAME }}/flask-app:${IMAGE_TAG}
 
       - name: Clone GitOps Repo
-        run: git clone https://x-access-token:${{ secrets.GITOPS_REPO_PAT }}@github.com/Achyuth-A/flask-applic.git
+        run: git clone https://x-access-token:${{ secrets.GITOPS_REPO_PAT }}@github.com/Achyuth-A/gitops-pract.git
 
       - name: Update Image Tag
         run: |
-          cd flask-gitops/flask
+          cd gitops-pract/flask
           sed -i "s|image:.*|image: ${{ secrets.DOCKER_USERNAME }}/flask-app:${IMAGE_TAG}|g" deployment.yaml
 
       - name: Commit & Push
